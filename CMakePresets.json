@@ -1,65 +1,61 @@
 {
-    "version": 3,
-    "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 28,
-        "patch": 0
-    },
+    "version": 6,
     "configurePresets": [
         {
             "name": "base",
             "hidden": true,
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "cacheVariables": {
-                "CMAKE_CXX_STANDARD": "23",
-                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
-                "CMAKE_CXX_EXTENSIONS": "OFF",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
             }
         },
         {
             "name": "debug",
-            "displayName": "Debug Build",
-            "description": "Debug build with maximum warnings and debug info",
             "inherits": "base",
             "binaryDir": "${sourceDir}/build/debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/debug"
-            },
-            "environment": {
-                "CC": "gcc",
-                "CXX": "g++"
+                "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
             "name": "release",
-            "displayName": "Release Build",
-            "description": "Release build with optimizations",
             "inherits": "base",
             "binaryDir": "${sourceDir}/build/release",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/release"
-            },
-            "environment": {
-                "CC": "gcc",
-                "CXX": "g++"
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "debug-sanitize",
+            "inherits": "debug",
+            "cacheVariables": {
+                "ENABLE_SANITIZERS": "ON"
+            }
+        },
+        {
+            "name": "release-lto",
+            "inherits": "release",
+            "cacheVariables": {
+                "ENABLE_IPO": "ON"
             }
         }
     ],
     "buildPresets": [
         {
             "name": "debug",
-            "displayName": "Build Debug",
-            "configurePreset": "debug",
-            "jobs": 0
+            "configurePreset": "debug"
         },
         {
             "name": "release",
-            "displayName": "Build Release",
-            "configurePreset": "release",
-            "jobs": 0
+            "configurePreset": "release"
+        },
+        {
+            "name": "debug-sanitize",
+            "configurePreset": "debug-sanitize"
+        },
+        {
+            "name": "release-lto",
+            "configurePreset": "release-lto"
         }
     ]
 }

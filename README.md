@@ -1,139 +1,465 @@
-# C++ Project Template
-This is a C++ project template that automatically detects and builds executable targets from your source files. It uses CMake with presets and a Makefile wrapper for easy building and running.
-## Features
-- **Automatic target detection**: Automatically finds and builds:
-  - Single `.cpp` files in `src/` directory
-  - Multi-file projects in subdirectories of `src/`
-- **Smart build system**: Uses CMake presets with debug and release configurations
-- **Easy execution**: Run your programs with simple commands
-- **Cross-platform**: Works on Linux, macOS, and Windows (with WSL)
+# 🚀 Universal C++23 Template
 
-## Example Project Structure
-```
-project/
-├── src/                  # Source code directory
-│   ├── *.cpp              # Single-file executables
-│   └── project_name/       # Multi-file project directories
-│       ├── main.cpp         # Entry point (or project_name.cpp)
-│       └── .cpp/.h          # Additional source files
-├── CMakeLists.txt        # CMake configuration
-├── CMakePresets.json     # CMake presets (debug/release)
-├── Makefile              # Main build interface
-└── README.md             # This file
-```
-## Requirements
-- CMake 3.23 or higher
-- GCC/G++ or Clang compiler
-- Make (or mingw32-make on Windows)
-- Ninja (optional, for alternative generator)
-## Getting Started
-### Building Projects
+[![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23) [![CMake](https://img.shields.io/badge/CMake-3.28%2B-green.svg)](https://cmake.org/) [![Ninja](https://img.shields.io/badge/Ninja-Build-orange.svg)](https://ninja-build.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A C++23 project template with CMake presets, sanitizers, LTO support, and zero-boilerplate project organization.
+
+---
+
+## ✨ Features
+
+- ⚡ **Modern C++23** — latest language features and best practices
+- 🔨 **Automatic target discovery** — executables and libraries detected automatically
+- 🎯 **Multi-target support** — build multiple applications and libraries from a single configuration
+- 🧹 **Convention over configuration** — `main.cpp` creates an executable, otherwise a library
+- 🛡️ **Sanitizer ready** — AddressSanitizer and UndefinedBehaviorSanitizer support
+- 🚀 **LTO / IPO support** — maximum optimization for release builds
+- 🎨 **clang-format integration** — consistent formatting across the entire project
+- ⚙️ **CMake presets** — Debug, Release, Sanitizers, and LTO configurations
+- 🏗️ **Cross-platform** — GCC, Clang, and MSVC support
+
+---
+
+# 📦 Quick Start
+
+## Clone
+
 ```bash
-# Build the first detected target
-make
+# 1. Clone
+git clone https://github.com/star-barsuk/cmake-template.git ./cmake-template
+cd cmake-template
 
-# Build specific target
-make target_name
-
-# Build in debug mode (default)
+# 2. Build
 make debug
 
-# Build in release mode
+# 3. Run
+./bin/Debug/calculator
+```
+
+Expected output:
+
+```text
+2 + 3 = 5
+10 - 4 = 6
+```
+
+---
+
+# 🌐 Automatic Target Discovery
+
+Targets are generated automatically based on the `src/` directory structure.
+
+| Pattern | Target | Type |
+|----------|----------|----------|
+| `src/demo.cpp` | `demo` | Executable |
+| `src/calculator/main.cpp` | `calculator` | Executable |
+| `src/math/*.cpp` | `libmath.a` | Static Library |
+
+---
+
+# 🗂️ Project Structure
+
+```text
+.
+├── 🔨 CMakeLists.txt              # Build configuration
+├── ⚙️ CMakePresets.json           # CMake presets (debug, release, etc.)
+├── 🎨 .clang-format               # Code style configuration
+├── ⚡ Makefile                     # Command shortcuts
+├── 📁 src/                         # Source code
+│   ├── 🎯 demo.cpp                  # Root executable (auto-detected)
+│   ├── 📁 calculator/               # Calculator module
+│   │   ├── 📄 main.cpp               # Entry point → executable
+│   │   ├── 📄 calculator.cpp         # Implementation
+│   │   └── 📄 calculator.hpp         # Header
+│   └── 📁 math/                     # Math library
+│       ├── 📄 vector.cpp             # Implementation
+│       └── 📄 vector.hpp             # Vector2 structure
+└── 📄 README.md                  # This file
+```
+
+---
+
+# ⚙️ Discovery Rules
+
+## Standalone Executable
+
+```text
+src/example.cpp
+```
+
+becomes
+
+```text
+example
+```
+
+---
+
+## Directory Executable
+
+```text
+src/calculator/
+├── main.cpp
+├── calculator.cpp
+└── calculator.hpp
+```
+
+becomes
+
+```text
+calculator
+```
+
+All `.cpp` files inside the directory are compiled into the executable.
+
+---
+
+## Static Library
+
+```text
+src/math/
+├── vector.cpp
+└── vector.hpp
+```
+
+becomes
+
+```text
+libmath.a
+```
+
+Any directory containing `.cpp` files but **without** `main.cpp` becomes a static library.
+
+---
+
+# 🚀 Build Commands
+
+## Debug Build
+
+```bash
+make debug
+```
+
+Uses:
+
+```text
+-O0 -g
+```
+
+---
+
+## Release Build
+
+```bash
 make release
-
-# Show all auto-detected targets
-make detect
 ```
-### Running Projects
-```bash
-# Run the last built target
-make run
 
-# Rebuild and run (clean build)
-make rerun
+Uses:
+
+```text
+-O3
 ```
-### Cleaning and Maintenance
+
+---
+
+## Sanitizers
+
 ```bash
-# Clean build directories
+make sanitize
+```
+
+Enables:
+
+- AddressSanitizer
+- UndefinedBehaviorSanitizer
+
+---
+
+## LTO / IPO
+
+```bash
+make lto
+```
+
+Enables:
+
+- Link-Time Optimization
+- Interprocedural Optimization
+
+---
+
+## Clean
+
+```bash
 make clean
-
-# Rebuild current target
-make rebuild
-
-# Refresh and run (rebuild only if needed)
-make refresh
 ```
-## How Target Detection Works 
-### Single-File Targets 
-- Any `.cpp` file in `src/ directory` becomes an executable
-- Example: `src/hello.cpp` → executable named `hello`
-### Multi-File Targets 
-- Each subdirectory in `src/` can be a multi-file project
-- Must have one of these entry points:
-  - `main.cpp`
-  - `{subdirectory_name}.cpp`
-         
-- All `.cpp` files in the subdirectory are compiled together
-### Build Configurations 
-Debug Build (default) 
-- Compiles with `-g -O0` for debugging
-- Enables all warnings (`-Wall -Wextra -Wpedantic`)
-- Defines `DEBUG_MODE` macro
-### Release Build 
-- Compiles with `-O3` for optimization
-- Defines `NDEBUG` macro
-- Enables warnings for code quality
-## Examples 
-### Single-File Project 
-Create `src/hello.cpp`:
-```cpp
-#include <iostream>
-int main() {
-    std::cout << "Hello World!" << std::endl;
-    return 0;
-}
+
+Removes:
+
+```text
+build/
+bin/
 ```
-Build and run:
+
+---
+
+# 🎨 Code Formatting
+
+Format all source files:
+
 ```bash
-make hello
-make run
+cmake --build --preset debug --target format
 ```
-### Multi-File Project
-Create directory structure:
-```
-src/
-└── calculator/
-    ├── main.cpp
-    ├── calculator.h
-    └── calculator.cpp
-```
-Build and run:
-```bash
-make calculator
-make run
-```
-## Environment Variables
-You can customize behavior with these variables:
-```bash
-# Set specific target
-make TARGET=hello build
 
-# Set build type
-make BUILD_TYPE=release build
+Requires:
 
-# Set parallel jobs (default: number of CPU cores)
-make JOBS=4 build
-
-# Set project name
-make PROJECT=my_project build
+```text
+clang-format
 ```
-## CMake Presets
-The project uses CMake presets for consistent builds: 
-- debug: Debug build with full debugging info
-- release: Optimized release build
 
-Configure manually with:
+---
+
+# 🎯 Build Individual Targets
+
+Configure cmake:
 ```bash
 cmake --preset debug
-cmake --build --preset debug --target target_name
 ```
+
+Build only the calculator:
+
+```bash
+cmake --build --preset debug --target calculator
+```
+
+Build only the demo application:
+
+```bash
+cmake --build --preset debug --target demo
+```
+
+Build only the math library:
+
+```bash
+cmake --build --preset debug --target math
+```
+
+---
+
+## Custom Options
+
+```bash
+cmake --preset debug \
+    -DENABLE_THREADS=ON \
+    -DWARNINGS_AS_ERRORS=ON
+
+cmake --build --preset debug
+```
+
+---
+
+# ⚙️ Available Options
+
+| Option | Default | Description |
+|----------|----------|----------|
+| `ENABLE_THREADS` | `OFF` | Link with `Threads::Threads` |
+| `ENABLE_IPO` | `ON` | Enable IPO/LTO for Release |
+| `ENABLE_SANITIZERS` | `OFF` | Enable sanitizers in Debug |
+| `WARNINGS_AS_ERRORS` | `OFF` | Treat warnings as errors |
+
+Example:
+
+```bash
+cmake --preset debug \
+    -DENABLE_THREADS=ON \
+    -DWARNINGS_AS_ERRORS=ON
+```
+
+---
+
+# 🔧 Compiler Configuration
+
+## GCC / Clang
+
+Warnings:
+
+```text
+-Wall
+-Wextra
+-Wpedantic
+-Wshadow
+-Wconversion
+-Wsign-conversion
+```
+
+Debug:
+
+```text
+-O0 -g
+```
+
+Release:
+
+```text
+-O3
+```
+
+---
+
+## MSVC
+
+Warnings:
+
+```text
+/W4
+/permissive-
+```
+
+Optional:
+
+```text
+/WX
+```
+
+---
+
+# 📊 Output Layout
+
+```text
+bin/
+├── Debug/
+│   ├── calculator
+│   ├── demo
+│   └── lib/
+│       └── libmath.a
+│
+└── Release/
+    ├── calculator
+    ├── demo
+    └── lib/
+        └── libmath.a
+```
+
+---
+
+# 📋 Requirements
+
+| Component | Version |
+|------------|------------|
+| CMake | 3.28+ |
+| Ninja | Latest |
+| GCC | 14+ |
+| Clang | 18+ |
+| MSVC | Visual Studio 2022+ |
+| GNU Make | 4.0+ |
+
+Optional:
+
+- clang-format 18+
+- Threading support
+
+---
+
+# ➕ Adding New Executables
+
+Create a new source file:
+
+```bash
+cat > src/hello.cpp << EOF
+#include <iostream>
+
+int main()
+{
+    std::cout << "Hello World\n";
+}
+EOF
+```
+
+Build:
+
+```bash
+make debug
+```
+
+Run:
+
+```bash
+./bin/Debug/hello
+```
+
+No CMake modifications required.
+
+---
+
+# ➕ Adding New Libraries
+
+Create a module directory:
+
+```bash
+mkdir -p src/geometry
+```
+
+Implementation:
+
+```cpp
+double area(double r)
+{
+    return 3.14159265359 * r * r;
+}
+```
+
+Header:
+
+```cpp
+#pragma once
+
+double area(double r);
+```
+
+Build:
+
+```bash
+make debug
+```
+
+Generated automatically:
+
+```text
+libgeometry.a
+```
+
+Location:
+
+```text
+bin/Debug/lib/
+```
+
+---
+
+# 💡 Philosophy
+
+This template follows a simple rule:
+
+> Structure defines build targets.
+
+No manual `add_executable()`.
+No manual `add_library()`.
+No per-target boilerplate.
+
+Just create files and build.
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+Made with ❤️ for Modern C++ Development
+
+**© 2026 Star-Barsuk**
+
+</div>
