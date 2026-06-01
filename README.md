@@ -13,11 +13,10 @@ A C++23 project template with CMake presets, sanitizers, LTO support, and zero-b
 - 🎯 **Multi-target support** — build multiple applications and libraries from a single configuration
 - 🧹 **Convention over configuration** — `main.cpp` creates an executable, otherwise a library
 - 🛡️ **Sanitizer ready** — AddressSanitizer and UndefinedBehaviorSanitizer support
-- 🚀 **LTO / IPO support** — maximum optimization for release builds
+- 🚀 **LTO / IPO support** — maximum optimization for release builds (enabled by default)
 - 🎨 **clang-format integration** — consistent formatting across the entire project
 - ⚙️ **CMake presets** — Debug, Release, Sanitizers, and LTO configurations
 - 🏗️ **Cross-platform** — GCC, Clang, and MSVC support
-
 ---
 
 # 📦 Quick Start
@@ -140,12 +139,17 @@ Any directory containing `.cpp` files but **without** `main.cpp` becomes a stati
 make debug
 ```
 
-Uses:
+GCC/Clang flags:
 
 ```text
 -O0 -g
 ```
 
+MSVC flags:
+
+```text
+/Od /Zi (automatically set by CMake for Debug configuration)
+```
 ---
 
 ## Release Build
@@ -154,10 +158,16 @@ Uses:
 make release
 ```
 
-Uses:
+GCC/Clang flags:
 
 ```text
 -O3
+```
+
+MSVC flags:
+
+```text
+/O2 (automatically set by CMake for Release configuration)
 ```
 
 ---
@@ -168,7 +178,7 @@ Uses:
 make sanitize
 ```
 
-Enables:
+Enables (GCC/Clang only):
 
 - AddressSanitizer
 - UndefinedBehaviorSanitizer
@@ -185,6 +195,8 @@ Enables:
 
 - Link-Time Optimization
 - Interprocedural Optimization
+
+⚠️ Important: LTO/IPO is enabled by default for all configurations via the `ENABLE_IPO` option. The `release-lto` preset explicitly ensures it's active for release builds. If you want to disable LTO, use `-DENABLE_IPO=OFF`.
 
 ---
 
@@ -208,7 +220,14 @@ bin/
 Format all source files:
 
 ```bash
-cmake --build --preset debug --target format
+make format
+```
+Or manually:
+
+```bash
+clang-format -i src/**/*.cpp src/**/*.hpp
+# or
+find src -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
 ```
 
 Requires:
@@ -263,8 +282,8 @@ cmake --build --preset debug
 | Option | Default | Description |
 |----------|----------|----------|
 | `ENABLE_THREADS` | `OFF` | Link with `Threads::Threads` |
-| `ENABLE_IPO` | `ON` | Enable IPO/LTO for Release |
-| `ENABLE_SANITIZERS` | `OFF` | Enable sanitizers in Debug |
+| `ENABLE_IPO` | `ON` | Enable IPO/LTO (applies to all build types) |
+| `ENABLE_SANITIZERS` | `OFF` | Enable sanitizers (Debug only, GCC/Clang only) |
 | `WARNINGS_AS_ERRORS` | `OFF` | Treat warnings as errors |
 
 Example:
@@ -315,11 +334,13 @@ Warnings:
 /permissive-
 ```
 
-Optional:
+Optional (when WARNINGS_AS_ERRORS is ON):
 
 ```text
 /WX
 ```
+
+Note: MSVC optimization flags (/Od, /O2) are automatically set by CMake based on the build type and are not explicitly configured in this project.
 
 ---
 
