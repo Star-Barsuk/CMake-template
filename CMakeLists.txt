@@ -201,36 +201,6 @@ function(configure_target target_name)
 endfunction()
 
 # ============================================================
-# clang-format
-# ============================================================
-
-find_program(
-    CLANG_FORMAT_EXECUTABLE
-    NAMES clang-format
-)
-
-if(CLANG_FORMAT_EXECUTABLE)
-
-    file(
-        GLOB_RECURSE
-        FORMAT_FILES
-        CONFIGURE_DEPENDS
-        "${CMAKE_SOURCE_DIR}/src/*.cpp"
-        "${CMAKE_SOURCE_DIR}/src/*.hpp"
-    )
-
-    add_custom_target(
-        format
-        COMMAND
-        ${CLANG_FORMAT_EXECUTABLE}
-        -i
-        ${FORMAT_FILES}
-        COMMENT "Formatting source files"
-    )
-
-endif()
-
-# ============================================================
 # Root executables
 # ============================================================
 
