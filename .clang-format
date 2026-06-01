@@ -4,7 +4,6 @@ Standard: Latest
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-
 ColumnLimit: 100
 
 # ============================================================
@@ -15,10 +14,10 @@ BreakBeforeBraces: Attach
 
 BraceWrapping:
   AfterClass: true
-  AfterNamespace: true
   AfterStruct: true
-  AfterUnion: true
+  AfterNamespace: true
   AfterEnum: true
+  AfterUnion: true
   BeforeElse: true
   BeforeCatch: true
   BeforeWhile: true
@@ -28,7 +27,7 @@ BraceWrapping:
   AfterFunction: false
 
 # ============================================================
-# INDENTATION
+# ARCHITECTURAL INDENT CONSISTENCY
 # ============================================================
 
 NamespaceIndentation: All
@@ -38,22 +37,17 @@ IndentExternBlock: NoIndent
 ContinuationIndentWidth: 4
 
 # ============================================================
-# ALIGNMENT (STRICT MODE)
+# STRICT FORMATTING
 # ============================================================
 
+AlignOperands: DontAlign
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: false
-AlignOperands: DontAlign
-
 AlignTrailingComments: true
 
 PointerAlignment: Left
 DerivePointerAlignment: false
-
-# ============================================================
-# ARGUMENTS
-# ============================================================
 
 BinPackArguments: false
 BinPackParameters: false
@@ -62,7 +56,7 @@ AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 
 # ============================================================
-# CONTROL FLOW
+# CONTROL FLOW DISCIPLINE
 # ============================================================
 
 AllowShortFunctionsOnASingleLine: None
@@ -73,8 +67,8 @@ AllowShortLambdasOnASingleLine: Inline
 
 AlwaysBreakTemplateDeclarations: Yes
 AlwaysBreakAfterReturnType: None
-BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
+BreakBeforeBinaryOperators: None
 
 # ============================================================
 # SPACING
@@ -99,7 +93,7 @@ SortIncludes: CaseInsensitive
 SortUsingDeclarations: true
 
 # ============================================================
-# COMMENTS / CLEAN STYLE
+# COMMENTS / CLEAN CODE OUTPUT
 # ============================================================
 
 ReflowComments: true
