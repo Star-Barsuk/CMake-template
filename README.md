@@ -1,4 +1,4 @@
-# 🚀 Universal C++23 Template
+# 🚀 ]C++23 Template
 
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23) [![CMake](https://img.shields.io/badge/CMake-3.28%2B-green.svg)](https://cmake.org/) [![Ninja](https://img.shields.io/badge/Ninja-Build-orange.svg)](https://ninja-build.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -52,19 +52,21 @@ For one CLI or pet project with a single entry point:
 
 1. Rename `project(...)` in `CMakeLists.txt` (e.g. `project(mytool ...)`).
 2. Add `src/main.cpp` (see `src/main.cpp.example`).
-3. Build:
+3. Enable `SINGLE_APP=ON` via `CMakeUserPresets.json` (see below) or when configuring:
 
 ```bash
-make single
-# or
-cmake --preset single && cmake --build --preset single
+cmake --preset debug -DSINGLE_APP=ON
+make build-debug
 ```
 
 Run:
 
 ```bash
-./bin/Debug/mytool   # name matches project()
+./bin/Debug/mytool      # Debug
+./bin/Release/mytool    # Release — name matches project()
 ```
+
+There is no separate `single` preset: single-app is the same `debug` / `release` flow with one CMake option.
 
 In this mode:
 
@@ -151,68 +153,41 @@ Any directory containing `.cpp` files but **without** `main.cpp` becomes a stati
 
 # 🚀 Build Commands
 
-## Debug Build
+`make` is a shortcut layer over CMake presets — no options, only fixed targets.
+
+| Target | Action |
+|--------|--------|
+| `make config-debug` | Configure preset `debug` |
+| `make build-debug` | Build preset `debug` |
+| `make debug` | `config-debug` + `build-debug` |
+| `make config-release` | Configure preset `release` |
+| `make build-release` | Build preset `release` |
+| `make release` | `config-release` + `build-release` |
+| `make config-sanitize` / `make build-sanitize` / `make sanitize` | Preset `debug-sanitize` |
+| `make config-lto` / `make build-lto` / `make lto` | Preset `release-lto` |
+| `make clean` | Remove `build/`, `bin/`, `compile_commands.json` |
+| `make format` / `make lint` | clang-format |
+
+Typical flow after editing code: `make build-debug`.  
+After changing preset or CMake options: `make config-debug` (or `make debug`).
+
+Equivalent CMake commands:
 
 ```bash
-make debug
+cmake --preset debug && cmake --build --preset debug   # same as make debug
+cmake --build --preset debug                           # same as make build-debug
 ```
 
-Compiler flags:
+### Preset flags
 
-```text
--O0 -g
-```
----
+| Preset | Build type | Notes |
+|--------|------------|--------|
+| `debug` | Debug | `-O0 -g`, IPO off |
+| `release` | Release | `-O3`, IPO off |
+| `debug-sanitize` | Debug | ASan + UBSan |
+| `release-lto` | Release | IPO on |
 
-## Release Build
-
-```bash
-make release
-```
-
-Compiler flags:
-
-```text
--O3
-```
-
----
-
-## Sanitizers
-
-```bash
-make sanitize
-```
-
-Enables:
-
-- AddressSanitizer
-- UndefinedBehaviorSanitizer
-
----
-
-## LTO / IPO
-
-```bash
-make lto
-```
-
-Enables:
-
-- Link-Time Optimization
-- Interprocedural Optimization
-
-`debug` and `release` presets set `ENABLE_IPO=OFF` for faster iteration. `make lto` / preset `release-lto` turns IPO on. Override anytime with `-DENABLE_IPO=ON|OFF`.
-
----
-
-## Single-app build
-
-```bash
-make single
-```
-
-Uses preset `single` (`SINGLE_APP=ON`, output in `build/single/`).
+`debug` and `release` set `ENABLE_IPO=OFF` for faster iteration. Use `make lto` for a release build with LTO.
 
 ---
 
@@ -230,7 +205,9 @@ bin/
 compile_commands.json
 ```
 
-**After switching presets** (e.g. `debug` → `release`, or `debug` → `single`), run `make clean` and reconfigure. Output paths include `${CMAKE_BUILD_TYPE}`; reusing an old build directory without a clean configure can leave binaries under the wrong `bin/` folder.
+**After switching presets** (`debug` ↔ `release`) or changing CMake options (e.g. `SINGLE_APP`), run `make clean`, then `make config-<preset>`.
+
+For single-app by default, copy `CMakeUserPresets.json.example` → `CMakeUserPresets.json` (gitignored) and set `SINGLE_APP=ON` on `debug` / `release` — then `make debug` works without extra flags.
 
 ---
 
@@ -288,6 +265,7 @@ cmake --build --preset debug --target math
 
 ```bash
 cmake --preset debug \
+    -DSINGLE_APP=ON \
     -DENABLE_THREADS=ON \
     -DWARNINGS_AS_ERRORS=ON
 
@@ -310,6 +288,7 @@ Example:
 
 ```bash
 cmake --preset debug \
+    -DSINGLE_APP=ON \
     -DENABLE_THREADS=ON \
     -DWARNINGS_AS_ERRORS=ON
 ```
