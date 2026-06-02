@@ -1,0 +1,19 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "debug",
+            "inherits": "debug",
+            "cacheVariables": {
+                "SINGLE_APP": "ON"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": "release",
+            "cacheVariables": {
+                "SINGLE_APP": "ON"
+            }
+        }
+    ]
+}
