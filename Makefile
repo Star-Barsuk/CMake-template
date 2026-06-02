@@ -1,36 +1,58 @@
-.PHONY: debug release single sanitize lto format lint check-format clean
+.PHONY: clean format lint check-format
+.PHONY: config-debug config-release config-sanitize config-lto
+.PHONY: build-debug build-release build-sanitize build-lto
+.PHONY: debug release sanitize lto
 
 SRC_FILES := $(shell find src -type f \( -name "*.cpp" -o -name "*.hpp" \))
 
-lint: check-format
+# ── Configure (switch preset) ───────────────────────────────
 
-debug:
+config-debug:
 	cmake --preset debug
-	cmake --build --preset debug
 	@ln -sf build/debug/compile_commands.json compile_commands.json
 
-release:
+config-release:
 	cmake --preset release
+
+config-sanitize:
+	cmake --preset debug-sanitize
+
+config-lto:
+	cmake --preset release-lto
+
+# ── Build (preset must already be configured) ───────────────
+
+build-debug:
+	cmake --build --preset debug
+
+build-release:
 	cmake --build --preset release
 
-single:
-	cmake --preset single
-	cmake --build --preset single
-	@ln -sf build/single/compile_commands.json compile_commands.json
-
-sanitize:
-	cmake --preset debug-sanitize
+build-sanitize:
 	cmake --build --preset debug-sanitize
 
-lto:
-	cmake --preset release-lto
+build-lto:
 	cmake --build --preset release-lto
+
+# ── Configure + build ───────────────────────────────────────
+
+debug: config-debug build-debug
+
+release: config-release build-release
+
+sanitize: config-sanitize build-sanitize
+
+lto: config-lto build-lto
+
+# ── Other ───────────────────────────────────────────────────
 
 format:
 	clang-format -i $(SRC_FILES)
 
 check-format:
 	clang-format --dry-run --Werror $(SRC_FILES)
+
+lint: check-format
 
 clean:
 	rm -rf build bin compile_commands.json
