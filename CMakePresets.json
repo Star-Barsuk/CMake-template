@@ -33,14 +33,6 @@
             }
         },
         {
-            "name": "single",
-            "inherits": "debug",
-            "binaryDir": "${sourceDir}/build/single",
-            "cacheVariables": {
-                "SINGLE_APP": "ON"
-            }
-        },
-        {
             "name": "debug-sanitize",
             "inherits": "debug",
             "cacheVariables": {
@@ -63,10 +55,6 @@
         {
             "name": "release",
             "configurePreset": "release"
-        },
-        {
-            "name": "single",
-            "configurePreset": "single"
         },
         {
             "name": "debug-sanitize",
