@@ -172,3 +172,6 @@ Desktop.ini
 .contextignore
 context.txt
 scripts/collect_context.sh
+
+# ── Project goals ───────────────────────────────────────────
+PROJECT_GOALS.md

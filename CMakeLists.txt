@@ -189,73 +189,14 @@ add_executable(${PROJECT_NAME} "${_main_source}")
 configure_target(${PROJECT_NAME})
 
 # ============================================================
-# Static libraries (src/<module>/)
+# Modules (src/<module>/CMakeLists.txt, dependency order)
 # ============================================================
 
-set(PROJECT_LIBRARIES "")
+add_subdirectory(src/math)
+add_subdirectory(src/calculator)
 
-file(
-    GLOB
-    CHILDREN
-    RELATIVE
-    "${CMAKE_SOURCE_DIR}/src"
-    "${CMAKE_SOURCE_DIR}/src/*"
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE
+    ${PROJECT_NAME}::calculator
 )
-
-foreach(child ${CHILDREN})
-
-    set(dir_path "${CMAKE_SOURCE_DIR}/src/${child}")
-
-    if(NOT IS_DIRECTORY "${dir_path}")
-        continue()
-    endif()
-
-    file(
-        GLOB_RECURSE
-        cpp_files
-        CONFIGURE_DEPENDS
-        "${dir_path}/*.cpp"
-    )
-
-    if(NOT cpp_files)
-        continue()
-    endif()
-
-    list(FILTER cpp_files EXCLUDE REGEX "/main\\.cpp$")
-
-    if(NOT cpp_files)
-        continue()
-    endif()
-
-    add_library(
-        ${child}
-        STATIC
-        ${cpp_files}
-    )
-
-    target_include_directories(
-        ${child}
-        PUBLIC
-        ${dir_path}
-    )
-
-    configure_target(${child})
-    list(APPEND PROJECT_LIBRARIES ${child})
-
-endforeach()
-
-if(TARGET calculator AND TARGET math)
-    target_link_libraries(
-        calculator
-        PUBLIC
-        math
-    )
-endif()
-
-if(PROJECT_LIBRARIES)
-    target_link_libraries(
-        ${PROJECT_NAME}
-        PRIVATE
-        ${PROJECT_LIBRARIES}
-    )
-endif()

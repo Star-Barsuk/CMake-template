@@ -64,7 +64,9 @@ Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `p
 | `src/main.cpp` | `${PROJECT_NAME}` | Executable |
 | `src/<module>/*.cpp` | `<module>` | Static library (linked into the executable) |
 
-Subdirectories under `src/` with `.cpp` files become static libraries and are linked into the main executable automatically. Link dependencies between modules are declared in `CMakeLists.txt` (e.g. `calculator` → `math`).
+Each module lives in `src/<module>/` with its own `CMakeLists.txt`. Dependencies are declared there (e.g. `calculator` → `math`). The executable links only the top layer (`DefaultProject::calculator`); transitive libs are pulled automatically.
+
+To add a module: create `src/<name>/`, add sources + `CMakeLists.txt`, register `add_subdirectory(src/<name>)` in the root (after its dependencies), and link aliases `${PROJECT_NAME}::<name>` where needed.
 
 ---
 
