@@ -27,7 +27,10 @@ Expected output:
 ```text
 2 + 3 = 5
 10 - 4 = 6
+distance (0,0)-(3,4) = 5
 ```
+
+`calculator` links against the `math` module (`vector_length`, `vector_sub`) to compute distances.
 
 Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `project(mytool ...)` → `./bin/Debug/mytool`).
 
@@ -61,7 +64,7 @@ Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `p
 | `src/main.cpp` | `${PROJECT_NAME}` | Executable |
 | `src/<module>/*.cpp` | `<module>` | Static library (linked into the executable) |
 
-Subdirectories under `src/` with `.cpp` files become static libraries and are linked into the main executable automatically.
+Subdirectories under `src/` with `.cpp` files become static libraries and are linked into the main executable automatically. Link dependencies between modules are declared in `CMakeLists.txt` (e.g. `calculator` → `math`).
 
 ---
 
@@ -119,9 +122,9 @@ bin/
 compile_commands.json
 ```
 
-**After switching presets** (`debug` ↔ `release`) or changing CMake options, run `make clean`, then `make config-<preset>`.
+**After switching presets** (`debug` ↔ `release` ↔ `debug-sanitize`, etc.) or changing CMake options, run `make clean`, then `make config-<preset>`. Each configure preset uses its own directory: `build/<presetName>/`.
 
-Optional local overrides: `CMakeUserPresets.json` (gitignored) can inherit from `debug` / `release` and set extra `cacheVariables`.
+Optional local overrides: `CMakeUserPresets.json` (gitignored) can inherit from any preset and set extra `cacheVariables`.
 
 ---
 

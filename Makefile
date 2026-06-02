@@ -16,6 +16,7 @@ config-release:
 
 config-sanitize:
 	cmake --preset debug-sanitize
+	@ln -sf build/debug-sanitize/compile_commands.json compile_commands.json
 
 config-lto:
 	cmake --preset release-lto

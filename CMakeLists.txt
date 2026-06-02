@@ -244,6 +244,14 @@ foreach(child ${CHILDREN})
 
 endforeach()
 
+if(TARGET calculator AND TARGET math)
+    target_link_libraries(
+        calculator
+        PUBLIC
+        math
+    )
+endif()
+
 if(PROJECT_LIBRARIES)
     target_link_libraries(
         ${PROJECT_NAME}
