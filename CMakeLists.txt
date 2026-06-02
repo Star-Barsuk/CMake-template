@@ -12,6 +12,12 @@ project(
 # ============================================================
 
 option(
+    SINGLE_APP
+    "Build only src/main.cpp as the executable (no src/*.cpp glob, no directory executables)"
+    OFF
+)
+
+option(
     ENABLE_THREADS
     "Enable Threads::Threads linkage"
     OFF
@@ -43,6 +49,13 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(
+        FATAL_ERROR
+        "Unsupported compiler '${CMAKE_CXX_COMPILER_ID}'. This template supports GCC and Clang only."
+    )
+endif()
+
 # ============================================================
 # Output directories
 # ============================================================
@@ -63,15 +76,25 @@ set(
 )
 
 # ============================================================
+# Project-wide dependencies and capabilities
+# ============================================================
+
+if(ENABLE_THREADS)
+    find_package(Threads REQUIRED)
+endif()
+
+set(PROJECT_IPO_SUPPORTED FALSE)
+
+if(ENABLE_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT PROJECT_IPO_SUPPORTED)
+endif()
+
+# ============================================================
 # Sanitizers
 # ============================================================
 
 function(enable_sanitizers target_name)
-
-    if(MSVC)
-        return()
-    endif()
-
     target_compile_options(
         ${target_name}
         PRIVATE
@@ -85,7 +108,6 @@ function(enable_sanitizers target_name)
         -fsanitize=address
         -fsanitize=undefined
     )
-
 endfunction()
 
 # ============================================================
@@ -100,55 +122,30 @@ function(configure_target target_name)
         cxx_std_23
     )
 
-    if(MSVC)
+    target_compile_options(
+        ${target_name}
+        PRIVATE
 
+        -Wall
+        -Wextra
+        -Wpedantic
+
+        -Wshadow
+        -Wconversion
+        -Wsign-conversion
+
+        $<$<CONFIG:Debug>:-O0>
+        $<$<CONFIG:Debug>:-g>
+
+        $<$<CONFIG:Release>:-O3>
+    )
+
+    if(WARNINGS_AS_ERRORS)
         target_compile_options(
             ${target_name}
             PRIVATE
-            /W4
-            /permissive-
+            -Werror
         )
-
-        if(WARNINGS_AS_ERRORS)
-
-            target_compile_options(
-                ${target_name}
-                PRIVATE
-                /WX
-            )
-
-        endif()
-
-    else()
-
-        target_compile_options(
-            ${target_name}
-            PRIVATE
-
-            -Wall
-            -Wextra
-            -Wpedantic
-
-            -Wshadow
-            -Wconversion
-            -Wsign-conversion
-
-            $<$<CONFIG:Debug>:-O0>
-            $<$<CONFIG:Debug>:-g>
-
-            $<$<CONFIG:Release>:-O3>
-        )
-
-        if(WARNINGS_AS_ERRORS)
-
-            target_compile_options(
-                ${target_name}
-                PRIVATE
-                -Werror
-            )
-
-        endif()
-
     endif()
 
     target_compile_definitions(
@@ -158,44 +155,25 @@ function(configure_target target_name)
     )
 
     if(ENABLE_THREADS)
-
-        find_package(Threads REQUIRED)
-
         target_link_libraries(
             ${target_name}
             PRIVATE
             Threads::Threads
         )
-
     endif()
 
     if(
         ENABLE_SANITIZERS
         AND CMAKE_BUILD_TYPE STREQUAL "Debug"
     )
-
         enable_sanitizers(${target_name})
-
     endif()
 
-    if(ENABLE_IPO)
-
-        include(CheckIPOSupported)
-
-        check_ipo_supported(
-            RESULT ipo_supported
+    if(ENABLE_IPO AND PROJECT_IPO_SUPPORTED)
+        set_property(
+            TARGET ${target_name}
+            PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
         )
-
-        if(ipo_supported)
-
-            set_property(
-                TARGET ${target_name}
-                PROPERTY
-                INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
-            )
-
-        endif()
-
     endif()
 
 endfunction()
@@ -204,29 +182,45 @@ endfunction()
 # Root executables
 # ============================================================
 
-file(
-    GLOB
-    ROOT_SOURCES
-    CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/src/*.cpp"
-)
+if(SINGLE_APP)
 
-foreach(source_file IN LISTS ROOT_SOURCES)
+    set(_single_app_source "${CMAKE_SOURCE_DIR}/src/main.cpp")
 
-    get_filename_component(
-        target_name
-        ${source_file}
-        NAME_WE
+    if(NOT EXISTS "${_single_app_source}")
+        message(
+            FATAL_ERROR
+            "SINGLE_APP is ON but '${_single_app_source}' was not found."
+        )
+    endif()
+
+    add_executable(${PROJECT_NAME} "${_single_app_source}")
+    configure_target(${PROJECT_NAME})
+
+else()
+
+    file(
+        GLOB
+        ROOT_SOURCES
+        CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/src/*.cpp"
     )
 
-    add_executable(
-        ${target_name}
-        ${source_file}
-    )
+    list(FILTER ROOT_SOURCES EXCLUDE REGEX "/main\\.cpp$")
 
-    configure_target(${target_name})
+    foreach(source_file IN LISTS ROOT_SOURCES)
 
-endforeach()
+        get_filename_component(
+            target_name
+            ${source_file}
+            NAME_WE
+        )
+
+        add_executable(${target_name} ${source_file})
+        configure_target(${target_name})
+
+    endforeach()
+
+endif()
 
 # ============================================================
 # Directories
@@ -249,10 +243,10 @@ foreach(child ${CHILDREN})
     endif()
 
     file(
-    GLOB_RECURSE
-    cpp_files
-    CONFIGURE_DEPENDS
-    "${dir_path}/*.cpp"
+        GLOB_RECURSE
+        cpp_files
+        CONFIGURE_DEPENDS
+        "${dir_path}/*.cpp"
     )
 
     if(NOT cpp_files)
@@ -263,10 +257,11 @@ foreach(child ${CHILDREN})
 
     if(EXISTS "${main_file}")
 
-        add_executable(
-            ${child}
-            ${cpp_files}
-        )
+        if(SINGLE_APP)
+            continue()
+        endif()
+
+        add_executable(${child} ${cpp_files})
 
         target_include_directories(
             ${child}

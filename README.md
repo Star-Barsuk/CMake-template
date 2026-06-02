@@ -2,21 +2,8 @@
 
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23) [![CMake](https://img.shields.io/badge/CMake-3.28%2B-green.svg)](https://cmake.org/) [![Ninja](https://img.shields.io/badge/Ninja-Build-orange.svg)](https://ninja-build.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A C++23 project template with CMake presets, sanitizers, LTO support, and zero-boilerplate project organization.
+A C++23 project template with CMake presets.
 
----
-
-## ✨ Features
-
-- ⚡ **Modern C++23** — latest language features and best practices
-- 🔨 **Automatic target discovery** — executables and libraries detected automatically
-- 🎯 **Multi-target support** — build multiple applications and libraries from a single configuration
-- 🧹 **Convention over configuration** — `main.cpp` creates an executable, otherwise a library
-- 🛡️ **Sanitizer ready** — AddressSanitizer and UndefinedBehaviorSanitizer support
-- 🚀 **LTO / IPO support** — maximum optimization for release builds (enabled by default)
-- 🎨 **clang-format integration** — consistent formatting across the entire project
-- ⚙️ **CMake presets** — Debug, Release, Sanitizers, and LTO configurations
-- 🏗️ **Cross-platform** — GCC, Clang, and MSVC support
 ---
 
 # 📦 Quick Start
@@ -53,6 +40,37 @@ Targets are generated automatically based on the `src/` directory structure.
 | `src/demo.cpp` | `demo` | Executable |
 | `src/calculator/main.cpp` | `calculator` | Executable |
 | `src/math/*.cpp` | `libmath.a` | Static Library |
+| `src/main.cpp` (with `SINGLE_APP=ON`) | `${PROJECT_NAME}` | Single executable |
+
+`src/main.cpp` is reserved for single-app mode and is **not** picked up by the root `src/*.cpp` glob in multi-target mode.
+
+---
+
+# 📦 Single-app mode
+
+For one CLI or pet project with a single entry point:
+
+1. Rename `project(...)` in `CMakeLists.txt` (e.g. `project(mytool ...)`).
+2. Add `src/main.cpp` (see `src/main.cpp.example`).
+3. Build:
+
+```bash
+make single
+# or
+cmake --preset single && cmake --build --preset single
+```
+
+Run:
+
+```bash
+./bin/Debug/mytool   # name matches project()
+```
+
+In this mode:
+
+- only `src/main.cpp` becomes an executable;
+- `src/*.cpp` glob and directory executables (e.g. `calculator/`) are disabled;
+- static libraries under `src/*/` (without `main.cpp`) are still built.
 
 ---
 
@@ -139,16 +157,10 @@ Any directory containing `.cpp` files but **without** `main.cpp` becomes a stati
 make debug
 ```
 
-GCC/Clang flags:
+Compiler flags:
 
 ```text
 -O0 -g
-```
-
-MSVC flags:
-
-```text
-/Od /Zi (automatically set by CMake for Debug configuration)
 ```
 ---
 
@@ -158,16 +170,10 @@ MSVC flags:
 make release
 ```
 
-GCC/Clang flags:
+Compiler flags:
 
 ```text
 -O3
-```
-
-MSVC flags:
-
-```text
-/O2 (automatically set by CMake for Release configuration)
 ```
 
 ---
@@ -178,7 +184,7 @@ MSVC flags:
 make sanitize
 ```
 
-Enables (GCC/Clang only):
+Enables:
 
 - AddressSanitizer
 - UndefinedBehaviorSanitizer
@@ -196,7 +202,17 @@ Enables:
 - Link-Time Optimization
 - Interprocedural Optimization
 
-⚠️ Important: LTO/IPO is enabled by default for all configurations via the `ENABLE_IPO` option. The `release-lto` preset explicitly ensures it's active for release builds. If you want to disable LTO, use `-DENABLE_IPO=OFF`.
+`debug` and `release` presets set `ENABLE_IPO=OFF` for faster iteration. `make lto` / preset `release-lto` turns IPO on. Override anytime with `-DENABLE_IPO=ON|OFF`.
+
+---
+
+## Single-app build
+
+```bash
+make single
+```
+
+Uses preset `single` (`SINGLE_APP=ON`, output in `build/single/`).
 
 ---
 
@@ -211,7 +227,10 @@ Removes:
 ```text
 build/
 bin/
+compile_commands.json
 ```
+
+**After switching presets** (e.g. `debug` → `release`, or `debug` → `single`), run `make clean` and reconfigure. Output paths include `${CMAKE_BUILD_TYPE}`; reusing an old build directory without a clean configure can leave binaries under the wrong `bin/` folder.
 
 ---
 
@@ -281,9 +300,10 @@ cmake --build --preset debug
 
 | Option | Default | Description |
 |----------|----------|----------|
+| `SINGLE_APP` | `OFF` | Only `src/main.cpp` as executable; no root glob / dir executables |
 | `ENABLE_THREADS` | `OFF` | Link with `Threads::Threads` |
-| `ENABLE_IPO` | `ON` | Enable IPO/LTO (applies to all build types) |
-| `ENABLE_SANITIZERS` | `OFF` | Enable sanitizers (Debug only, GCC/Clang only) |
+| `ENABLE_IPO` | `ON` | Enable IPO/LTO for Release (checked once per configure) |
+| `ENABLE_SANITIZERS` | `OFF` | Enable sanitizers (Debug only) |
 | `WARNINGS_AS_ERRORS` | `OFF` | Treat warnings as errors |
 
 Example:
@@ -325,25 +345,6 @@ Release:
 
 ---
 
-## MSVC
-
-Warnings:
-
-```text
-/W4
-/permissive-
-```
-
-Optional (when WARNINGS_AS_ERRORS is ON):
-
-```text
-/WX
-```
-
-Note: MSVC optimization flags (/Od, /O2) are automatically set by CMake based on the build type and are not explicitly configured in this project.
-
----
-
 # 📊 Output Layout
 
 ```text
@@ -371,12 +372,11 @@ bin/
 | Ninja | Latest |
 | GCC | 14+ |
 | Clang | 18+ |
-| MSVC | Visual Studio 2022+ |
 | GNU Make | 4.0+ |
 
 Optional:
 
-- clang-format 18+
+- clang-format 18+ (20+ recommended for `InsertBraces`, `RemoveSemicolon`)
 - Threading support
 
 ---
@@ -457,20 +457,6 @@ bin/Debug/lib/
 
 ---
 
-# 💡 Philosophy
-
-This template follows a simple rule:
-
-> Structure defines build targets.
-
-No manual `add_executable()`.
-No manual `add_library()`.
-No per-target boilerplate.
-
-Just create files and build.
-
----
-
 # 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -478,8 +464,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-
-Made with ❤️ for Modern C++ Development
 
 **© 2026 Star-Barsuk**
 

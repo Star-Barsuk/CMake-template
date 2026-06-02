@@ -1,3 +1,5 @@
+---
+Language: Cpp
 BasedOnStyle: LLVM
 Standard: Latest
 
@@ -7,10 +9,11 @@ UseTab: Never
 ColumnLimit: 100
 
 # ============================================================
-# BRACES
+# BRACES (clang-format 17+)
 # ============================================================
 
 BreakBeforeBraces: Attach
+InsertBraces: true
 
 BraceWrapping:
   AfterClass: true
@@ -27,14 +30,20 @@ BraceWrapping:
   AfterFunction: false
 
 # ============================================================
-# ARCHITECTURAL INDENT CONSISTENCY
+# LAYOUT
 # ============================================================
 
 NamespaceIndentation: All
 IndentCaseLabels: true
 IndentPPDirectives: BeforeHash
-IndentExternBlock: NoIndent
+IndentExternBlock: AfterExternBlock
 ContinuationIndentWidth: 4
+SeparateDefinitionBlocks: Always
+PackConstructorInitializers: Never
+BreakConstructorInitializers: BeforeColon
+AlignAfterOpenBracket: BlockIndent
+QualifierAlignment: Left
+RemoveSemicolon: true
 
 # ============================================================
 # STRICT FORMATTING
@@ -56,7 +65,7 @@ AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 
 # ============================================================
-# CONTROL FLOW DISCIPLINE
+# CONTROL FLOW
 # ============================================================
 
 AllowShortFunctionsOnASingleLine: None
@@ -69,6 +78,7 @@ AlwaysBreakTemplateDeclarations: Yes
 AlwaysBreakAfterReturnType: None
 BreakBeforeTernaryOperators: true
 BreakBeforeBinaryOperators: None
+AllowBreakBeforeNoexceptSpecifier: Always
 
 # ============================================================
 # SPACING
@@ -81,7 +91,7 @@ SpaceAfterCStyleCast: false
 
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-SpacesInAngles: false
+SpacesInAngles: Never
 SpacesInConditionalStatement: false
 
 # ============================================================
@@ -93,14 +103,13 @@ SortIncludes: CaseInsensitive
 SortUsingDeclarations: true
 
 # ============================================================
-# COMMENTS / CLEAN CODE OUTPUT
+# COMMENTS
 # ============================================================
 
 ReflowComments: true
 MaxEmptyLinesToKeep: 1
-FixNamespaceComments: false
+FixNamespaceComments: true
 DeriveLineEnding: true
 
 WhitespaceSensitiveMacros:
   - PRAGMA_WARNING_DISABLE_GCC
-  - PRAGMA_WARNING_DISABLE_MSVC

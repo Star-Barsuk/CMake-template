@@ -43,8 +43,6 @@ build/
 dist/
 _build/
 output/
-Makefile
-*.mk
 
 # ── CMake ───────────────────────────────────────────────────
 CMakeCache.txt

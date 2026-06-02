@@ -1,0 +1,10 @@
+// Rename to main.cpp and build with: make single
+// Or: cmake --preset single && cmake --build --preset single
+
+#include <iostream>
+
+int main()
+{
+    std::cout << "Hello from single-app mode\n";
+    return 0;
+}

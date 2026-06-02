@@ -1,5 +1,10 @@
 {
-    "version": 6,
+    "version": 8,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
     "configurePresets": [
         {
             "name": "base",
@@ -14,7 +19,8 @@
             "inherits": "base",
             "binaryDir": "${sourceDir}/build/debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "ENABLE_IPO": "OFF"
             }
         },
         {
@@ -22,7 +28,16 @@
             "inherits": "base",
             "binaryDir": "${sourceDir}/build/release",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Release",
+                "ENABLE_IPO": "OFF"
+            }
+        },
+        {
+            "name": "single",
+            "inherits": "debug",
+            "binaryDir": "${sourceDir}/build/single",
+            "cacheVariables": {
+                "SINGLE_APP": "ON"
             }
         },
         {
@@ -48,6 +63,10 @@
         {
             "name": "release",
             "configurePreset": "release"
+        },
+        {
+            "name": "single",
+            "configurePreset": "single"
         },
         {
             "name": "debug-sanitize",
