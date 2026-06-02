@@ -1,13 +1,18 @@
-#include "calculator.hpp"
+#include <defaultproject/calculator/calculator.hpp>
+#include <defaultproject/util/cast.hpp>
 
-int add(int lhs, int rhs) {
-    return lhs + rhs;
-}
+namespace defaultproject::calculator {
 
-int sub(int lhs, int rhs) {
-    return lhs - rhs;
-}
+    int add(int lhs, int rhs) {
+        return util::narrow_cast<int>(lhs + rhs);
+    }
 
-float distance(Vector2 from, Vector2 to) {
-    return vector_length(vector_sub(to, from));
-}
+    int sub(int lhs, int rhs) {
+        return util::narrow_cast<int>(lhs - rhs);
+    }
+
+    float distance(math::Vector2 from, math::Vector2 to) {
+        return math::vector_length(math::vector_sub(to, from));
+    }
+
+} // namespace defaultproject::calculator

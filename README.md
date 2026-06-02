@@ -40,20 +40,26 @@ Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `p
 
 ```text
 .
-├── 🔨 CMakeLists.txt              # Build configuration
-├── ⚙️ CMakePresets.json           # CMake presets (debug, release, etc.)
-├── 🎨 .clang-format               # Code style configuration
-├── ⚡ Makefile                     # Command shortcuts
-├── 📁 src/                         # Source code
-│   ├── 📄 main.cpp                 # Application entry point
-│   ├── 📁 calculator/               # Calculator module (static library)
-│   │   ├── 📄 calculator.cpp
-│   │   └── 📄 calculator.hpp
-│   └── 📁 math/                     # Math library (static library)
-│       ├── 📄 vector.cpp
-│       └── 📄 vector.hpp
-└── 📄 README.md                  # This file
+├── 🔨 CMakeLists.txt
+├── ⚙️ CMakePresets.json
+├── 📁 include/defaultproject/       # Public API (#include <defaultproject/...>)
+│   ├── calculator/calculator.hpp
+│   ├── math/vector.hpp
+│   └── util/cast.hpp                # header-only (INTERFACE)
+├── 📁 src/
+│   ├── main.cpp                     # CLI entry point
+│   ├── util/CMakeLists.txt          # INTERFACE library
+│   ├── math/
+│   │   ├── CMakeLists.txt
+│   │   ├── vector.cpp
+│   │   └── detail/length.hpp        # private implementation (not installed)
+│   └── calculator/
+│       ├── CMakeLists.txt
+│       └── calculator.cpp
+└── 📄 README.md
 ```
+
+Public headers live under `include/<lowercase-project-name>/` (matches `project()` via `PROJECT_INCLUDE_PREFIX`). Implementation and `detail/` stay under `src/<module>/`.
 
 ---
 
@@ -62,11 +68,14 @@ Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `p
 | Path | CMake target | Type |
 |------|----------------|------|
 | `src/main.cpp` | `${PROJECT_NAME}` | Executable |
-| `src/<module>/*.cpp` | `<module>` | Static library (linked into the executable) |
+| `include/defaultproject/**` | — | Public headers |
+| `src/<module>/*.cpp` | `<module>` | Static or INTERFACE library |
 
-Each module lives in `src/<module>/` with its own `CMakeLists.txt`. Dependencies are declared there (e.g. `calculator` → `math`). The executable links only the top layer (`DefaultProject::calculator`); transitive libs are pulled automatically.
+Each module has `src/<module>/CMakeLists.txt`. Includes use `BUILD_INTERFACE` / `INSTALL_INTERFACE` on `${PROJECT_PUBLIC_INCLUDE_DIR}`.
 
-To add a module: create `src/<name>/`, add sources + `CMakeLists.txt`, register `add_subdirectory(src/<name>)` in the root (after its dependencies), and link aliases `${PROJECT_NAME}::<name>` where needed.
+The executable links only `${PROJECT_NAME}::calculator`. Dependencies (e.g. `calculator` → `math`, `util`) are declared in the module’s CMake.
+
+**New module:** public headers in `include/defaultproject/<module>/`, sources in `src/<module>/`, `add_subdirectory` in dependency order, link via `${PROJECT_NAME}::<module>`.
 
 ---
 

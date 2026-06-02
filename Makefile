@@ -3,7 +3,7 @@
 .PHONY: build-debug build-release build-sanitize build-lto
 .PHONY: debug release sanitize lto
 
-SRC_FILES := $(shell find src -type f \( -name "*.cpp" -o -name "*.hpp" \))
+SRC_FILES := $(shell find src include -type f \( -name "*.cpp" -o -name "*.hpp" \))
 
 # ── Configure (switch preset) ───────────────────────────────
 

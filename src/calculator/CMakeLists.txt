@@ -7,13 +7,16 @@ add_library(
 target_include_directories(
     calculator
     PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    "$<BUILD_INTERFACE:${PROJECT_PUBLIC_INCLUDE_DIR}>"
+    "$<INSTALL_INTERFACE:include>"
 )
 
 target_link_libraries(
     calculator
     PUBLIC
     ${PROJECT_NAME}::math
+    PRIVATE
+    ${PROJECT_NAME}::util
 )
 
 configure_target(calculator)

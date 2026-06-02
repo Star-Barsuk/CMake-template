@@ -7,6 +7,15 @@ project(
     LANGUAGES CXX
 )
 
+string(TOLOWER "${PROJECT_NAME}" PROJECT_INCLUDE_PREFIX)
+
+set(
+    PROJECT_PUBLIC_INCLUDE_DIR
+    "${CMAKE_SOURCE_DIR}/include"
+    CACHE INTERNAL
+    "Include root for <${PROJECT_INCLUDE_PREFIX}/...> headers"
+)
+
 # ============================================================
 # Options
 # ============================================================
@@ -192,6 +201,7 @@ configure_target(${PROJECT_NAME})
 # Modules (src/<module>/CMakeLists.txt, dependency order)
 # ============================================================
 
+add_subdirectory(src/util)
 add_subdirectory(src/math)
 add_subdirectory(src/calculator)
 
