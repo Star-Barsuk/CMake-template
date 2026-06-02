@@ -19,7 +19,7 @@ cd cmake-template
 make debug
 
 # 3. Run
-./bin/Debug/calculator
+./bin/Debug/DefaultProject
 ```
 
 Expected output:
@@ -29,50 +29,7 @@ Expected output:
 10 - 4 = 6
 ```
 
----
-
-# 🌐 Automatic Target Discovery
-
-Targets are generated automatically based on the `src/` directory structure.
-
-| Pattern | Target | Type |
-|----------|----------|----------|
-| `src/demo.cpp` | `demo` | Executable |
-| `src/calculator/main.cpp` | `calculator` | Executable |
-| `src/math/*.cpp` | `libmath.a` | Static Library |
-| `src/main.cpp` (with `SINGLE_APP=ON`) | `${PROJECT_NAME}` | Single executable |
-
-`src/main.cpp` is reserved for single-app mode and is **not** picked up by the root `src/*.cpp` glob in multi-target mode.
-
----
-
-# 📦 Single-app mode
-
-For one CLI or pet project with a single entry point:
-
-1. Rename `project(...)` in `CMakeLists.txt` (e.g. `project(mytool ...)`).
-2. Add `src/main.cpp` (see `src/main.cpp.example`).
-3. Enable `SINGLE_APP=ON` via `CMakeUserPresets.json` (see below) or when configuring:
-
-```bash
-cmake --preset debug -DSINGLE_APP=ON
-make build-debug
-```
-
-Run:
-
-```bash
-./bin/Debug/mytool      # Debug
-./bin/Release/mytool    # Release — name matches project()
-```
-
-There is no separate `single` preset: single-app is the same `debug` / `release` flow with one CMake option.
-
-In this mode:
-
-- only `src/main.cpp` becomes an executable;
-- `src/*.cpp` glob and directory executables (e.g. `calculator/`) are disabled;
-- static libraries under `src/*/` (without `main.cpp`) are still built.
+Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `project(mytool ...)` → `./bin/Debug/mytool`).
 
 ---
 
@@ -85,69 +42,26 @@ In this mode:
 ├── 🎨 .clang-format               # Code style configuration
 ├── ⚡ Makefile                     # Command shortcuts
 ├── 📁 src/                         # Source code
-│   ├── 🎯 demo.cpp                  # Root executable (auto-detected)
-│   ├── 📁 calculator/               # Calculator module
-│   │   ├── 📄 main.cpp               # Entry point → executable
-│   │   ├── 📄 calculator.cpp         # Implementation
-│   │   └── 📄 calculator.hpp         # Header
-│   └── 📁 math/                     # Math library
-│       ├── 📄 vector.cpp             # Implementation
-│       └── 📄 vector.hpp             # Vector2 structure
+│   ├── 📄 main.cpp                 # Application entry point
+│   ├── 📁 calculator/               # Calculator module (static library)
+│   │   ├── 📄 calculator.cpp
+│   │   └── 📄 calculator.hpp
+│   └── 📁 math/                     # Math library (static library)
+│       ├── 📄 vector.cpp
+│       └── 📄 vector.hpp
 └── 📄 README.md                  # This file
 ```
 
 ---
 
-# ⚙️ Discovery Rules
+# ⚙️ Build Layout
 
-## Standalone Executable
+| Path | CMake target | Type |
+|------|----------------|------|
+| `src/main.cpp` | `${PROJECT_NAME}` | Executable |
+| `src/<module>/*.cpp` | `<module>` | Static library (linked into the executable) |
 
-```text
-src/example.cpp
-```
-
-becomes
-
-```text
-example
-```
-
----
-
-## Directory Executable
-
-```text
-src/calculator/
-├── main.cpp
-├── calculator.cpp
-└── calculator.hpp
-```
-
-becomes
-
-```text
-calculator
-```
-
-All `.cpp` files inside the directory are compiled into the executable.
-
----
-
-## Static Library
-
-```text
-src/math/
-├── vector.cpp
-└── vector.hpp
-```
-
-becomes
-
-```text
-libmath.a
-```
-
-Any directory containing `.cpp` files but **without** `main.cpp` becomes a static library.
+Subdirectories under `src/` with `.cpp` files become static libraries and are linked into the main executable automatically.
 
 ---
 
@@ -205,9 +119,9 @@ bin/
 compile_commands.json
 ```
 
-**After switching presets** (`debug` ↔ `release`) or changing CMake options (e.g. `SINGLE_APP`), run `make clean`, then `make config-<preset>`.
+**After switching presets** (`debug` ↔ `release`) or changing CMake options, run `make clean`, then `make config-<preset>`.
 
-For single-app by default, copy `CMakeUserPresets.json.example` → `CMakeUserPresets.json` (gitignored) and set `SINGLE_APP=ON` on `debug` / `release` — then `make debug` works without extra flags.
+Optional local overrides: `CMakeUserPresets.json` (gitignored) can inherit from `debug` / `release` and set extra `cacheVariables`.
 
 ---
 
@@ -218,6 +132,7 @@ Format all source files:
 ```bash
 make format
 ```
+
 Or manually:
 
 ```bash
@@ -234,38 +149,10 @@ clang-format
 
 ---
 
-# 🎯 Build Individual Targets
-
-Configure cmake:
-```bash
-cmake --preset debug
-```
-
-Build only the calculator:
-
-```bash
-cmake --build --preset debug --target calculator
-```
-
-Build only the demo application:
-
-```bash
-cmake --build --preset debug --target demo
-```
-
-Build only the math library:
-
-```bash
-cmake --build --preset debug --target math
-```
-
----
-
 ## Custom Options
 
 ```bash
 cmake --preset debug \
-    -DSINGLE_APP=ON \
     -DENABLE_THREADS=ON \
     -DWARNINGS_AS_ERRORS=ON
 
@@ -277,21 +164,11 @@ cmake --build --preset debug
 # ⚙️ Available Options
 
 | Option | Default | Description |
-|----------|----------|----------|
-| `SINGLE_APP` | `OFF` | Only `src/main.cpp` as executable; no root glob / dir executables |
+|--------|---------|-------------|
 | `ENABLE_THREADS` | `OFF` | Link with `Threads::Threads` |
 | `ENABLE_IPO` | `ON` | Enable IPO/LTO for Release (checked once per configure) |
 | `ENABLE_SANITIZERS` | `OFF` | Enable sanitizers (Debug only) |
 | `WARNINGS_AS_ERRORS` | `OFF` | Treat warnings as errors |
-
-Example:
-
-```bash
-cmake --preset debug \
-    -DSINGLE_APP=ON \
-    -DENABLE_THREADS=ON \
-    -DWARNINGS_AS_ERRORS=ON
-```
 
 ---
 
@@ -329,15 +206,15 @@ Release:
 ```text
 bin/
 ├── Debug/
-│   ├── calculator
-│   ├── demo
+│   ├── DefaultProject
 │   └── lib/
+│       ├── libcalculator.a
 │       └── libmath.a
 │
 └── Release/
-    ├── calculator
-    ├── demo
+    ├── DefaultProject
     └── lib/
+        ├── libcalculator.a
         └── libmath.a
 ```
 
@@ -346,7 +223,7 @@ bin/
 # 📋 Requirements
 
 | Component | Version |
-|------------|------------|
+|-----------|---------|
 | CMake | 3.28+ |
 | Ninja | Latest |
 | GCC | 14+ |
@@ -360,79 +237,31 @@ Optional:
 
 ---
 
-# ➕ Adding New Executables
+# ➕ Adding a Module
 
-Create a new source file:
-
-```bash
-cat > src/hello.cpp << EOF
-#include <iostream>
-
-int main()
-{
-    std::cout << "Hello World\n";
-}
-EOF
-```
-
-Build:
-
-```bash
-make debug
-```
-
-Run:
-
-```bash
-./bin/Debug/hello
-```
-
-No CMake modifications required.
-
----
-
-# ➕ Adding New Libraries
-
-Create a module directory:
+Create a directory under `src/` with implementation files:
 
 ```bash
 mkdir -p src/geometry
 ```
 
-Implementation:
-
 ```cpp
-double area(double r)
-{
-    return 3.14159265359 * r * r;
-}
-```
-
-Header:
-
-```cpp
+// src/geometry/area.hpp
 #pragma once
-
 double area(double r);
+
+// src/geometry/area.cpp
+#include "area.hpp"
+double area(double r) { return 3.14159265359 * r * r; }
 ```
 
-Build:
+Use headers from `main.cpp` (or other modules). Rebuild:
 
 ```bash
 make debug
 ```
 
-Generated automatically:
-
-```text
-libgeometry.a
-```
-
-Location:
-
-```text
-bin/Debug/lib/
-```
+The `geometry` static library is created and linked automatically.
 
 ---
 

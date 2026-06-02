@@ -3,19 +3,13 @@ cmake_minimum_required(VERSION 3.28)
 project(
     DefaultProject
     VERSION 1.0.0
-    DESCRIPTION "Universal C++23 Template"
+    DESCRIPTION "C++23 Template"
     LANGUAGES CXX
 )
 
 # ============================================================
 # Options
 # ============================================================
-
-option(
-    SINGLE_APP
-    "Build only src/main.cpp as the executable (no src/*.cpp glob, no directory executables)"
-    OFF
-)
 
 option(
     ENABLE_THREADS
@@ -52,7 +46,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     message(
         FATAL_ERROR
-        "Unsupported compiler '${CMAKE_CXX_COMPILER_ID}'. This template supports GCC and Clang only."
+        "Unsupported compiler '${CMAKE_CXX_COMPILER_ID}'. Supports GCC and Clang only."
     )
 endif()
 
@@ -179,52 +173,26 @@ function(configure_target target_name)
 endfunction()
 
 # ============================================================
-# Root executables
+# Main executable
 # ============================================================
 
-if(SINGLE_APP)
+set(_main_source "${CMAKE_SOURCE_DIR}/src/main.cpp")
 
-    set(_single_app_source "${CMAKE_SOURCE_DIR}/src/main.cpp")
-
-    if(NOT EXISTS "${_single_app_source}")
-        message(
-            FATAL_ERROR
-            "SINGLE_APP is ON but '${_single_app_source}' was not found."
-        )
-    endif()
-
-    add_executable(${PROJECT_NAME} "${_single_app_source}")
-    configure_target(${PROJECT_NAME})
-
-else()
-
-    file(
-        GLOB
-        ROOT_SOURCES
-        CONFIGURE_DEPENDS
-        "${CMAKE_SOURCE_DIR}/src/*.cpp"
+if(NOT EXISTS "${_main_source}")
+    message(
+        FATAL_ERROR
+        "Main source '${_main_source}' was not found. Create src/main.cpp."
     )
-
-    list(FILTER ROOT_SOURCES EXCLUDE REGEX "/main\\.cpp$")
-
-    foreach(source_file IN LISTS ROOT_SOURCES)
-
-        get_filename_component(
-            target_name
-            ${source_file}
-            NAME_WE
-        )
-
-        add_executable(${target_name} ${source_file})
-        configure_target(${target_name})
-
-    endforeach()
-
 endif()
 
+add_executable(${PROJECT_NAME} "${_main_source}")
+configure_target(${PROJECT_NAME})
+
 # ============================================================
-# Directories
+# Static libraries (src/<module>/)
 # ============================================================
+
+set(PROJECT_LIBRARIES "")
 
 file(
     GLOB
@@ -253,40 +221,33 @@ foreach(child ${CHILDREN})
         continue()
     endif()
 
-    set(main_file "${dir_path}/main.cpp")
+    list(FILTER cpp_files EXCLUDE REGEX "/main\\.cpp$")
 
-    if(EXISTS "${main_file}")
-
-        if(SINGLE_APP)
-            continue()
-        endif()
-
-        add_executable(${child} ${cpp_files})
-
-        target_include_directories(
-            ${child}
-            PRIVATE
-            ${dir_path}
-        )
-
-        configure_target(${child})
-
-    else()
-
-        add_library(
-            ${child}
-            STATIC
-            ${cpp_files}
-        )
-
-        target_include_directories(
-            ${child}
-            PUBLIC
-            ${dir_path}
-        )
-
-        configure_target(${child})
-
+    if(NOT cpp_files)
+        continue()
     endif()
 
+    add_library(
+        ${child}
+        STATIC
+        ${cpp_files}
+    )
+
+    target_include_directories(
+        ${child}
+        PUBLIC
+        ${dir_path}
+    )
+
+    configure_target(${child})
+    list(APPEND PROJECT_LIBRARIES ${child})
+
 endforeach()
+
+if(PROJECT_LIBRARIES)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PRIVATE
+        ${PROJECT_LIBRARIES}
+    )
+endif()
