@@ -1,19 +1,17 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(
-    DefaultProject
-    VERSION 1.0.0
-    DESCRIPTION "C++23 Template"
+    DefaultProjectName
+    VERSION 0.1.0
+    DESCRIPTION "Description of the project"
     LANGUAGES CXX
 )
-
-string(TOLOWER "${PROJECT_NAME}" PROJECT_INCLUDE_PREFIX)
 
 set(
     PROJECT_PUBLIC_INCLUDE_DIR
     "${CMAKE_SOURCE_DIR}/include"
     CACHE INTERNAL
-    "Include root for <${PROJECT_INCLUDE_PREFIX}/...> headers"
+    "Include root for <DefaultProjectName/...> headers"
 )
 
 # ============================================================
@@ -119,6 +117,12 @@ endfunction()
 
 function(configure_target target_name)
 
+    target_include_directories(
+        ${target_name}
+        PRIVATE
+        "${PROJECT_PUBLIC_INCLUDE_DIR}"
+    )
+
     target_compile_features(
         ${target_name}
         PRIVATE
@@ -182,31 +186,7 @@ function(configure_target target_name)
 endfunction()
 
 # ============================================================
-# Main executable
+# Targets (src/CMakeLists.txt)
 # ============================================================
 
-set(_main_source "${CMAKE_SOURCE_DIR}/src/main.cpp")
-
-if(NOT EXISTS "${_main_source}")
-    message(
-        FATAL_ERROR
-        "Main source '${_main_source}' was not found. Create src/main.cpp."
-    )
-endif()
-
-add_executable(${PROJECT_NAME} "${_main_source}")
-configure_target(${PROJECT_NAME})
-
-# ============================================================
-# Modules (src/<module>/CMakeLists.txt, dependency order)
-# ============================================================
-
-add_subdirectory(src/util)
-add_subdirectory(src/math)
-add_subdirectory(src/calculator)
-
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE
-    ${PROJECT_NAME}::calculator
-)
+add_subdirectory(src)

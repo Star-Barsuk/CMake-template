@@ -1,9 +1,11 @@
-.PHONY: clean format lint check-format
+.PHONY: clean format lint check-format test
 .PHONY: config-debug config-release config-sanitize config-lto
 .PHONY: build-debug build-release build-sanitize build-lto
 .PHONY: debug release sanitize lto
+.PHONY: package-linux-x86_64 package-linux-aarch64 package-linux
 
 SRC_FILES := $(shell find src include -type f \( -name "*.cpp" -o -name "*.hpp" \))
+UNAME_M := $(shell uname -m)
 
 # ── Configure (switch preset) ───────────────────────────────
 
@@ -55,5 +57,35 @@ check-format:
 
 lint: check-format
 
+test: build-debug
+	ctest --test-dir build/debug --output-on-failure
+
 clean:
-	rm -rf build bin compile_commands.json
+	rm -rf build bin compile_commands.json dist
+
+# ── Release packages ────────────────────────────────────────
+DIST_DIR := dist
+TOOLCHAIN_AARCH64 := $(CURDIR)/cmake/toolchain-aarch64-linux-gnu.cmake
+
+package-linux-x86_64:
+	@mkdir -p $(DIST_DIR)
+	cmake --preset release-x86_64
+	cmake --build --preset release-x86_64
+	cp bin/Release/true_context $(DIST_DIR)/true_context-linux-x86_64
+	strip $(DIST_DIR)/true_context-linux-x86_64
+	@echo "→ $(DIST_DIR)/true_context-linux-x86_64"
+
+package-linux-aarch64:
+	@mkdir -p $(DIST_DIR)
+	cmake --preset release-aarch64
+	cmake --build --preset release-aarch64
+	cp bin/Release/true_context $(DIST_DIR)/true_context-linux-aarch64
+ifeq ($(UNAME_M),aarch64)
+	strip $(DIST_DIR)/true_context-linux-aarch64
+	@echo "→ $(DIST_DIR)/true_context-linux-aarch64 (native arm64)"
+else
+	aarch64-linux-gnu-strip $(DIST_DIR)/true_context-linux-aarch64
+	@echo "→ $(DIST_DIR)/true_context-linux-aarch64 (cross from $(UNAME_M))"
+endif
+
+package-linux: package-linux-x86_64 package-linux-aarch64
