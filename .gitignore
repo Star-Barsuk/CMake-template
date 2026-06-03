@@ -18,7 +18,9 @@ cmake-build-*/
 *.userprefs
 
 # ── IDE – VS Code ───────────────────────────────────────────
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 *.code-workspace
 
 # ── IDE – Qt Creator ────────────────────────────────────────
@@ -26,6 +28,8 @@ cmake-build-*/
 *.pro.user.*
 *.qbs.user
 *.qbs.user.*
+
+dist/
 
 # ── Build Results ───────────────────────────────────────────
 [Dd]ebug/
@@ -170,8 +174,7 @@ Desktop.ini
 
 # ── Context ─────────────────────────────────────────────────
 .contextignore
-context.txt
-scripts/collect_context.sh
+docs/context.md
 
-# ── Project goals ───────────────────────────────────────────
-PROJECT_GOALS.md
+# ── Project ─────────────────────────────────────────────────
+docs/ROADMAP.md
