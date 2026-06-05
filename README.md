@@ -1,6 +1,11 @@
-# 🚀 C++23 Template
+<div align="center">
 
-[![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23) [![CMake](https://img.shields.io/badge/CMake-3.28%2B-green.svg)](https://cmake.org/) [![Ninja](https://img.shields.io/badge/Ninja-Build-orange.svg)](https://ninja-build.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# C++23 Template
+
+[![C++23](https://img.shields.io/badge/C++-23-00599C?style=flat&logo=cplusplus&logoColor=white)](https://isocpp.org/) [![CMake](https://img.shields.io/badge/CMake-3.28+-brightgreen?style=flat&logo=cmake&logoColor=white)](https://cmake.org/) [![Ninja](https://img.shields.io/badge/Ninja-Build-orange.svg)](https://ninja-build.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey?style=flat&logo=linux&logoColor=white)](https://github.com/Star-Barsuk/CMake-template)
+
+</div>
 
 A C++23 project template with CMake presets.
 
@@ -22,17 +27,15 @@ make debug
 ./bin/Debug/DefaultProject
 ```
 
-Expected output:
+Expected output (no args → help):
 
 ```text
-2 + 3 = 5
-10 - 4 = 6
-distance (0,0)-(3,4) = 5
+Usage: defaultproject [KEYWORD] [ARG]...
+       defaultproject --version
+       defaultproject --help
 ```
 
-`calculator` links against the `math` module (`vector_length`, `vector_sub`) to compute distances.
-
-Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `project(mytool ...)` → `./bin/Debug/mytool`).
+Rename `project(...)` in `CMakeLists.txt` to change the CMake project name; the executable target stays `defaultproject`.
 
 ---
 
@@ -41,25 +44,26 @@ Rename `project(...)` in `CMakeLists.txt` to change the executable name (e.g. `p
 ```text
 .
 ├── 🔨 CMakeLists.txt
-├── ⚙️ CMakePresets.json
+├── ⚙️ CMakePresets.json             # configure / build / test / workflow presets
+├── 📁 cmake/
+│   ├── ProjectSettings.cmake        # INTERFACE targets (options, warnings, sanitizers)
+│   └── InstallRules.cmake
 ├── 📁 include/defaultproject/       # Public API (#include <defaultproject/...>)
-│   ├── calculator/calculator.hpp
-│   ├── math/vector.hpp
-│   └── util/cast.hpp                # header-only (INTERFACE)
+│   ├── app/
+│   ├── cli/
+│   ├── io/
+│   └── util/
 ├── 📁 src/
-│   ├── main.cpp                     # CLI entry point
-│   ├── util/CMakeLists.txt          # INTERFACE library
-│   ├── math/
-│   │   ├── CMakeLists.txt
-│   │   ├── vector.cpp
-│   │   └── detail/length.hpp        # private implementation (not installed)
-│   └── calculator/
-│       ├── CMakeLists.txt
-│       └── calculator.cpp
+│   ├── cli/main.cpp                 # Executable entry point
+│   └── lib/                         # defaultproject_lib (STATIC)
+│       ├── app/
+│       ├── cli/
+│       └── io/
+├── 📁 tests/unit/                   # Dedicated test binaries (CTest)
 └── 📄 README.md
 ```
 
-Public headers live under `include/<lowercase-project-name>/` (matches `project()` via `PROJECT_INCLUDE_PREFIX`). Implementation and `detail/` stay under `src/<module>/`.
+Public headers live under `include/defaultproject/`. Implementation stays under `src/lib/`.
 
 ---
 
@@ -67,43 +71,40 @@ Public headers live under `include/<lowercase-project-name>/` (matches `project(
 
 | Path | CMake target | Type |
 |------|----------------|------|
-| `src/main.cpp` | `${PROJECT_NAME}` | Executable |
+| `src/cli/main.cpp` | `defaultproject` | Executable |
+| `src/lib/**` | `defaultproject_lib` (`${PROJECT_NAME}::lib`) | Static library |
 | `include/defaultproject/**` | — | Public headers |
-| `src/<module>/*.cpp` | `<module>` | Static or INTERFACE library |
+| `tests/unit/*.cpp` | `test_*` | Test executables (CTest) |
 
-Each module has `src/<module>/CMakeLists.txt`. Includes use `BUILD_INTERFACE` / `INSTALL_INTERFACE` on `${PROJECT_PUBLIC_INCLUDE_DIR}`.
+Compiler flags are applied via INTERFACE targets (`project_options`, `project_warnings`) in `cmake/ProjectSettings.cmake` — not global `CMAKE_CXX_FLAGS`.
 
-The executable links only `${PROJECT_NAME}::calculator`. Dependencies (e.g. `calculator` → `math`, `util`) are declared in the module’s CMake.
-
-**New module:** public headers in `include/defaultproject/<module>/`, sources in `src/<module>/`, `add_subdirectory` in dependency order, link via `${PROJECT_NAME}::<module>`.
+The executable links `${PROJECT_NAME}::lib`. Unit tests link the same library target.
 
 ---
 
 # 🚀 Build Commands
 
-`make` is a shortcut layer over CMake presets — no options, only fixed targets.
+Preferred entrypoint — **workflow presets** (configure → build → test):
 
 | Target | Action |
 |--------|--------|
-| `make config-debug` | Configure preset `debug` |
-| `make build-debug` | Build preset `debug` |
-| `make debug` | `config-debug` + `build-debug` |
-| `make config-release` | Configure preset `release` |
-| `make build-release` | Build preset `release` |
-| `make release` | `config-release` + `build-release` |
-| `make config-sanitize` / `make build-sanitize` / `make sanitize` | Preset `debug-sanitize` |
-| `make config-lto` / `make build-lto` / `make lto` | Preset `release-lto` |
+| `make debug` | Workflow `debug` (configure + build + test) |
+| `make release` | Workflow `release` |
+| `make sanitize` | Workflow `sanitize` (ASan + UBSan) |
+| `make lto` | Workflow `lto` (configure + build) |
+| `make test` | Same as `make debug` |
 | `make clean` | Remove `build/`, `bin/`, `compile_commands.json` |
 | `make format` / `make lint` | clang-format |
 
-Typical flow after editing code: `make build-debug`.  
-After changing preset or CMake options: `make config-debug` (or `make debug`).
+Granular steps (`config-*`, `build-*`) remain for incremental builds.
 
 Equivalent CMake commands:
 
 ```bash
-cmake --preset debug && cmake --build --preset debug   # same as make debug
-cmake --build --preset debug                           # same as make build-debug
+cmake --workflow --preset debug                      # same as make debug
+cmake --preset debug && cmake --build --preset debug # configure + build only
+ctest --preset debug                                 # run tests only
+cmake --install build/debug --prefix dist/install    # install rules
 ```
 
 ### Preset flags
@@ -220,16 +221,16 @@ Release:
 ```text
 bin/
 ├── Debug/
-│   ├── DefaultProject
+│   ├── defaultproject
+│   ├── test_parser
+│   ├── test_cstring
 │   └── lib/
-│       ├── libcalculator.a
-│       └── libmath.a
+│       └── libdefaultproject_lib.a
 │
 └── Release/
-    ├── DefaultProject
+    ├── defaultproject
     └── lib/
-        ├── libcalculator.a
-        └── libmath.a
+        └── libdefaultproject_lib.a
 ```
 
 ---
@@ -251,31 +252,18 @@ Optional:
 
 ---
 
-# ➕ Adding a Module
+# ➕ Extending the Library
 
-Create a directory under `src/` with implementation files:
+1. Add public headers under `include/defaultproject/<area>/`.
+2. Add sources under `src/lib/<area>/`.
+3. List new `.cpp` files in `src/lib/CMakeLists.txt`.
+4. Add a unit test under `tests/unit/` and register it via `add_unit_test(...)`.
 
-```bash
-mkdir -p src/geometry
-```
-
-```cpp
-// src/geometry/area.hpp
-#pragma once
-double area(double r);
-
-// src/geometry/area.cpp
-#include "area.hpp"
-double area(double r) { return 3.14159265359 * r * r; }
-```
-
-Use headers from `main.cpp` (or other modules). Rebuild:
+Rebuild and test:
 
 ```bash
 make debug
 ```
-
-The `geometry` static library is created and linked automatically.
 
 ---
 
