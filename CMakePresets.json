@@ -16,7 +16,8 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_COLOR_DIAGNOSTICS": "ON"
+                "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                "BUILD_TESTING": "ON"
             },
             "warnings": {
                 "dev": true,
@@ -102,6 +103,95 @@
         {
             "name": "release-lto",
             "configurePreset": "release-lto"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "debug-sanitize",
+            "configurePreset": "debug-sanitize",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "debug",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "debug"
+                },
+                {
+                    "type": "build",
+                    "name": "debug"
+                },
+                {
+                    "type": "test",
+                    "name": "debug"
+                }
+            ]
+        },
+        {
+            "name": "release",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release"
+                },
+                {
+                    "type": "build",
+                    "name": "release"
+                },
+                {
+                    "type": "test",
+                    "name": "release"
+                }
+            ]
+        },
+        {
+            "name": "sanitize",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "debug-sanitize"
+                },
+                {
+                    "type": "build",
+                    "name": "debug-sanitize"
+                },
+                {
+                    "type": "test",
+                    "name": "debug-sanitize"
+                }
+            ]
+        },
+        {
+            "name": "lto",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release-lto"
+                },
+                {
+                    "type": "build",
+                    "name": "release-lto"
+                }
+            ]
         }
     ]
 }
