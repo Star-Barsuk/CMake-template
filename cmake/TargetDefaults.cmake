@@ -1,13 +1,17 @@
-# INTERFACE targets for modern, composable CMake configuration.
+# INTERFACE targets and helpers applied to every project target.
 
-add_library(project_options INTERFACE)
-add_library(project_warnings INTERFACE)
-add_library(project_sanitizers INTERFACE)
+add_library(${PROJECT_SLUG}_options INTERFACE)
+add_library(${PROJECT_SLUG}_warnings INTERFACE)
+add_library(${PROJECT_SLUG}_sanitizers INTERFACE)
 
-target_compile_features(project_options INTERFACE cxx_std_23)
+add_library(${PROJECT_NAME}::options ALIAS ${PROJECT_SLUG}_options)
+add_library(${PROJECT_NAME}::warnings ALIAS ${PROJECT_SLUG}_warnings)
+add_library(${PROJECT_NAME}::sanitizers ALIAS ${PROJECT_SLUG}_sanitizers)
+
+target_compile_features(${PROJECT_SLUG}_options INTERFACE cxx_std_23)
 
 target_compile_options(
-    project_options
+    ${PROJECT_SLUG}_options
     INTERFACE
     $<$<CONFIG:Debug>:-O0>
     $<$<CONFIG:Debug>:-g>
@@ -15,13 +19,13 @@ target_compile_options(
 )
 
 target_compile_definitions(
-    project_options
+    ${PROJECT_SLUG}_options
     INTERFACE
     $<$<CONFIG:Debug>:DEBUG_MODE>
 )
 
 target_compile_options(
-    project_warnings
+    ${PROJECT_SLUG}_warnings
     INTERFACE
     -Wall
     -Wextra
@@ -33,57 +37,46 @@ target_compile_options(
 )
 
 target_compile_options(
-    project_sanitizers
+    ${PROJECT_SLUG}_sanitizers
     INTERFACE
     -fsanitize=address
     -fsanitize=undefined
 )
 
 target_link_options(
-    project_sanitizers
+    ${PROJECT_SLUG}_sanitizers
     INTERFACE
     -fsanitize=address
     -fsanitize=undefined
 )
 
-function(project_link_settings target_name)
+function(apply_target_defaults target)
     target_link_libraries(
-        ${target_name}
+        ${target}
         PRIVATE
-        project_options
-        project_warnings
+        ${PROJECT_SLUG}_options
+        ${PROJECT_SLUG}_warnings
     )
 
     if(ENABLE_THREADS)
-        target_link_libraries(
-            ${target_name}
-            PRIVATE
-            Threads::Threads
-        )
+        target_link_libraries(${target} PRIVATE Threads::Threads)
     endif()
 
-    if(
-        ENABLE_SANITIZERS
-        AND CMAKE_BUILD_TYPE STREQUAL "Debug"
-    )
-        target_link_libraries(
-            ${target_name}
-            PRIVATE
-            project_sanitizers
-        )
+    if(ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_link_libraries(${target} PRIVATE ${PROJECT_SLUG}_sanitizers)
     endif()
 
     if(ENABLE_IPO AND PROJECT_IPO_SUPPORTED)
         set_property(
-            TARGET ${target_name}
+            TARGET ${target}
             PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
         )
     endif()
 endfunction()
 
-function(project_set_output_directories target_name)
+function(set_output_directories target)
     set_target_properties(
-        ${target_name}
+        ${target}
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}"
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/lib"

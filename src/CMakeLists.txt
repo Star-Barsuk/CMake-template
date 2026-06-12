@@ -1,12 +1,14 @@
 add_subdirectory(lib)
 
-add_executable(defaultproject cli/main.cpp)
+add_executable(${PROJECT_SLUG} main.cpp)
 
 target_link_libraries(
-    defaultproject
+    ${PROJECT_SLUG}
     PRIVATE
     ${PROJECT_NAME}::lib
 )
 
-project_link_settings(defaultproject)
-project_set_output_directories(defaultproject)
+apply_target_defaults(${PROJECT_SLUG})
+set_output_directories(${PROJECT_SLUG})
+
+add_executable(${PROJECT_NAME}::cli ALIAS ${PROJECT_SLUG})

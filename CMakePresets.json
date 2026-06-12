@@ -50,7 +50,7 @@
             "inherits": "release",
             "binaryDir": "${sourceDir}/build/release-x86_64",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain-x86_64-linux-gnu.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/linux-x86_64.cmake"
             }
         },
         {
@@ -59,7 +59,7 @@
             "inherits": "release",
             "binaryDir": "${sourceDir}/build/release-aarch64",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain-aarch64-linux-gnu.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/linux-aarch64.cmake"
             }
         },
         {
