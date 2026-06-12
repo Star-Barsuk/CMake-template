@@ -174,7 +174,7 @@ Desktop.ini
 
 # ── Context ─────────────────────────────────────────────────
 .contextignore
-docs/context.md
+docs/CONTEXT.md
 
 # ── Project ─────────────────────────────────────────────────
-docs/ROADMAP.md
+!docs/ROADMAP.md
