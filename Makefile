@@ -4,10 +4,15 @@
 .PHONY: config-sanitize build-sanitize config-lto build-lto
 .PHONY: package-linux-x86_64 package-linux-aarch64 package-linux
 
+# Keep in sync with project(DefaultProject ...) → PROJECT_SLUG in CMakeLists.txt
+PROJECT_SLUG := defaultproject
+
 SRC_FILES := $(shell find src include tests -type f \( -name "*.cpp" -o -name "*.hpp" \))
 UNAME_M := $(shell uname -m)
+DIST_DIR := dist
+BIN := bin/Release/$(PROJECT_SLUG)
 
-# ── Workflows (configure → build → test) ────────────────────
+# ── Workflows ───────────────────────────────────────────────
 
 debug:
 	cmake --workflow --preset debug
@@ -23,10 +28,9 @@ sanitize:
 lto:
 	cmake --workflow --preset lto
 
-test:
-	cmake --workflow --preset debug
+test: debug
 
-# ── Granular steps (optional) ───────────────────────────────
+# ── Granular steps ──────────────────────────────────────────
 
 config-debug:
 	cmake --preset debug
@@ -65,32 +69,29 @@ check-format:
 lint: check-format
 
 clean:
-	rm -rf build bin compile_commands.json dist
+	rm -rf build bin compile_commands.json $(DIST_DIR)
 
-# ── Release packages (Phase 3 — manual staging) ───────────
-
-DIST_DIR := dist
-TOOLCHAIN_AARCH64 := $(CURDIR)/cmake/toolchain-aarch64-linux-gnu.cmake
+# ── Release packages (manual staging — see ROADMAP Phase 3) ─
 
 package-linux-x86_64:
 	@mkdir -p $(DIST_DIR)
 	cmake --preset release-x86_64
 	cmake --build --preset release-x86_64
-	cp bin/Release/defaultproject $(DIST_DIR)/defaultproject-linux-x86_64
-	strip $(DIST_DIR)/defaultproject-linux-x86_64
-	@echo "→ $(DIST_DIR)/defaultproject-linux-x86_64"
+	cp $(BIN) $(DIST_DIR)/$(PROJECT_SLUG)-linux-x86_64
+	strip $(DIST_DIR)/$(PROJECT_SLUG)-linux-x86_64
+	@echo "→ $(DIST_DIR)/$(PROJECT_SLUG)-linux-x86_64"
 
 package-linux-aarch64:
 	@mkdir -p $(DIST_DIR)
 	cmake --preset release-aarch64
 	cmake --build --preset release-aarch64
-	cp bin/Release/defaultproject $(DIST_DIR)/defaultproject-linux-aarch64
+	cp $(BIN) $(DIST_DIR)/$(PROJECT_SLUG)-linux-aarch64
 ifeq ($(UNAME_M),aarch64)
-	strip $(DIST_DIR)/defaultproject-linux-aarch64
-	@echo "→ $(DIST_DIR)/defaultproject-linux-aarch64 (native arm64)"
+	strip $(DIST_DIR)/$(PROJECT_SLUG)-linux-aarch64
+	@echo "→ $(DIST_DIR)/$(PROJECT_SLUG)-linux-aarch64 (native arm64)"
 else
-	aarch64-linux-gnu-strip $(DIST_DIR)/defaultproject-linux-aarch64
-	@echo "→ $(DIST_DIR)/defaultproject-linux-aarch64 (cross from $(UNAME_M))"
+	aarch64-linux-gnu-strip $(DIST_DIR)/$(PROJECT_SLUG)-linux-aarch64
+	@echo "→ $(DIST_DIR)/$(PROJECT_SLUG)-linux-aarch64 (cross from $(UNAME_M))"
 endif
 
 package-linux: package-linux-x86_64 package-linux-aarch64
